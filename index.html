@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>HW2 Vis</title>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+        <style type="text/css">
+              
+
+                .bar:hover {
+                  fill: brown;
+                }   
+    
+            .axis { font: 14px sans-serif; }
+
+            .line {
+              fill: none;
+              stroke: steelblue;
+              stroke-width: 2px;
+            }
+            div.tooltip {   
+                position: absolute;         
+                text-align: center;         
+                width: 60px;                    
+                height: 28px;                   
+                padding: 2px;               
+                font: 12px sans-serif;      
+                border: 0px;        
+                border-radius: 8px;         
+                pointer-events: none;           
+            }
+        </style>
+
+
+
+    </head>
+
+    <body>
+ 
+<p> Grouped Bar Chart, Visualizing Retail Price and Dealer Cost for car types. </p>
+
+    <div class="tooltip"></div>
+    <div id="viz"></div>
+    
+<script type="text/javascript">
+ 
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 20, left: 50},
+    width = 800 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+
+
+// append the svg object to the body of the page
+var svg = d3.select("#viz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+        d3.csv("data_q1.csv").then(
+          function(data) {
+            data.forEach(function(d) {
+              d.Type = d.Type;
+              d.RetailPrice = +d.RetailPrice;
+              d.DealerCost = +d.DealerCost;
+            });
+
+
+
+
+           var subgroups =["RetailPrice", "DealerCost"]
+             var groups = d3.map(data, function(d){return(d.Type)}).keys()
+             var x = d3.scaleBand()
+                  .domain(groups)
+                  .range([0, width])
+                  .padding([0.2])
+              svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x).tickSize(0));
+                  // Add Y axis
+              var y = d3.scaleLinear()
+                .domain([0, d3. max(data, function(d) { return d.RetailPrice; } )])
+                .range([ height, 0 ]);
+              svg.append("g")
+                .call(d3.axisLeft(y));
+
+              // Another scale for subgroup position?
+              var xSubgroup = d3.scaleBand()
+                .domain(subgroups)
+                .range([0, x.bandwidth()])
+                .padding([0.05])
+
+                var color = d3.scaleOrdinal()
+                .domain(subgroups)
+                .range(['#e41a1c','#377eb8'])
+
+
+ var bars = svg.append("g")
+    .selectAll("g")
+    // Enter in data = loop group per group
+    .data(data)
+    .enter()
+    .append("g")
+      .attr("transform", function(d) { return "translate(" + x(d.Type) + ",0)"; })
+    .selectAll("rect")
+    .data(function(d) { return subgroups.map(function(key) {
+     return {key: key, value: d[key]}; }); })
+    .enter().append("rect")
+      .attr("x", function(d) { return xSubgroup(d.key); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("width", xSubgroup.bandwidth())
+      .attr("height", function(d) { return height - y(d.value); })
+      .attr("fill", function(d) { return color(d.key); })
+      .append("title").text(function(d){ return d.value});
+    
+
+svg.append("circle").attr("cx",600).attr("cy",60).attr("r", 10).style("fill", "#e41a1c")
+svg.append("circle").attr("cx",600).attr("cy",90).attr("r", 10).style("fill", "#377eb8")
+svg.append("text").attr("x", 620).attr("y", 60).text("Retail Price").style("font-size", "15px")
+.attr("alignment-baseline","middle")
+svg.append("text").attr("x", 620).attr("y", 90).text("Dealer Cost").style("font-size", "15px").attr("alignment-baseline","middle")
+});
+
+
+        </script>
+
+<p>Scatter Plot</p>
+<div id = "viz2"></div>
+<script type="text/javascript">
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 20, left: 50},
+    width = 800 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+
+
+
+// append the svg object to the body of the page
+var svg2 = d3.select("#viz2")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+
+
+d3.csv("cars.csv").then(
+          function(data) {
+        
+             var x = d3.scaleLinear()
+                          .domain([0,500])
+                  .range([0, width-margin.right]);
+                  
+             var y = d3.scaleLinear()
+                .domain([0, d3.max(data,function (d) { return d.HwyMPG })])
+                .range([ height - margin.bottom,0]);
+
+// Define the div for the tooltip
+var div = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0);
+
+              svg2.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x).tickSize(0));
+                  // Add Y axis
+             
+              svg2.append("g")
+                .call(d3.axisLeft(y));
+ var color = d3.scaleOrdinal()
+    .domain(["SUV", "SportsCar", "Other" ])
+    .range([ "#440154ff", "#21908dff", "#fde725ff"])
+                var SUVdots = svg2
+                    .append("g")
+                    .attr("class", "dots")
+                    .selectAll()
+                    .data(data)
+                    .enter()
+                    .append("circle")
+                    .attr("cx",function(d){ return  x(d.HP)})
+                    .attr("cy", function(d){ return y(d.HwyMPG) })
+                    .attr("r", function(d){ return d.Cyl })
+                    .style("fill",function(d){return color(d.category)})
+                    .on("mouseover", function(d) {      
+                    div.transition()        
+                        .duration(200)      
+                        .style("opacity", .9);      
+                    div.html("HP:"+(d.HP) + "<br/>"  +"MPG:"+ d.HwyMPG) 
+                        .style("left", (d3.event.pageX) + "px")     
+                        .style("top", (d3.event.pageY - 28) + "px");
+                    d3.select(this).style("fill", "red");
+
+                    })                  
+                .on("mouseout", function(d) {       
+                    div.transition()        
+                        .duration(500)      
+                        .style("opacity", 0);
+                    d3.select(this).style("fill", function(d){
+                        if(d.category == "SUV"){
+                            return "#440154ff";
+                        }else if(d.category == "SportsCar"){
+                            return "#21908dff";
+                        }else{
+                            return "#fde725ff";
+                        }
+                    });
+          });
+
+             
+                  svg2.append('rect')
+                      .attr('x', 700)
+                      .attr('y', 20)
+                      .attr('width', 10)
+                      .attr('height', 10)
+                      .attr('stroke', 'black')
+                      .attr('fill', '#440154ff');
+                svg2.append("text").attr("x", 650).attr("y", 30).text("SUV").style("font-size", "15px");
+
+                    svg2.append('rect')
+                      .attr('x', 700)
+                      .attr('y', 40)
+                      .attr('width', 10)
+                      .attr('height', 10)
+                      .attr('stroke', 'black')
+                      .attr('fill', '#21908dff');
+                      svg2.append("text").attr("x", 635).attr("y", 50).text("SportsCar").style("font-size", "15px")
+
+
+                    svg2.append('rect')
+                      .attr('x', 700)
+                      .attr('y', 60)
+                      .attr('width', 10)
+                      .attr('height', 10)
+                      .attr('stroke', 'black')
+                      .attr('fill', '#fde725ff');
+                      svg2.append("text").attr("x", 650).attr("y", 70).text("Other").style("font-size", "15px")
+
+
+
+
+
+
+
+        });
+
+
+</script>
+<p> Line Chart</p>
+<div id="viz3"></div>
+<script>
+
+var margin = {top: 10, right: 30, bottom: 20, left: 50},
+    width = 800 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+
+var svg3= d3.select("#viz3")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+var parseDate = d3.timeParse("%m/%d/%Y");
+
+
+
+
+d3.csv("Fuel_Prices.csv").then(
+          function(data) {
+        data.forEach(function(d) {
+            console.log(d)
+              d.Date = parseDate(d["Date"]);
+              d.Diesel = +d["Diesel (USD)"];
+              d.Petrol = +d["Petrol (USD)"];
+            
+            });
+
+var x = d3.scaleTime()
+      .domain(d3.extent(data, function(d) { return d.Date; }))
+      .range([ 0, width ]);
+
+svg3.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+var y = d3.scaleLinear()
+      .domain([70,150])
+      .range([ height, 0 ]);
+svg3.append("g")
+      .call(d3.axisLeft(y));
+
+
+var valueline = d3.line()
+        .x(function(d) { 
+            return x(d.Date); })
+        .y(function(d) { return y(+d.Petrol);  })
+        .curve(d3.curveMonotoneX);
+svg3.append("path")
+    .data([data]) 
+    .attr("class", "line") 
+    .style("stroke", "blue") 
+     .style("fill","none")
+    .attr("d", valueline); 
+
+var valueline1 = d3.line()
+        .x(function(d) { 
+            return x(d.Date); })
+        .y(function(d) { return y(+d.Diesel);  })
+        .curve(d3.curveMonotoneX);
+svg3.append("path")
+    .data([data])
+    .attr("class", "line")  
+    .attr("d", valueline1)
+    .style("stroke", "red")
+    .style("fill","none");
+
+
+
+        });
+   svg3.append("circle").attr("cx",width-90).attr("cy",30).attr("r", 6).style("fill", "blue")
+         svg3.append("circle").attr("cx",width-90).attr("cy",60).attr("r", 6).style("fill", "red")
+
+         svg3.append("text").attr("x", width-70).attr("y", 30).text("Petrol").style("font-size", "14px").attr("alignment-baseline","middle")
+         svg3.append("text").attr("x", width-70).attr("y", 60).text("Diesel").style("font-size", "14px").attr("alignment-baseline","middle")
+         svg3.append("text")
+        .attr("x", (width / 2))
+        .attr("y", 10)
+        .attr("text-anchor", "middle")
+            .attr("stroke", "steelblue")
+              .style("font-size", "22x")
+              .text("The difference Between Petrol and Diesel");
+
+    svg3.append("text")
+    .attr("x", width+20)
+    .attr("y",  585)
+    .style("text-anchor", "middle")
+    .text("Date");
+
+    svg3.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0-margin.left)
+    .attr("x",0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Price");
+ 
+</script>
+
+
+    </body>
+</html>
